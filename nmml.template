@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	
+	<meta title="::shortName::" package="::id::" version="::version::" company="Unknown" />
+	<app path="::targetDirectory::/nme" file="Application" main="::mainClass::"  swf-version="11.2"/>
+
+	<window width="800" height="600" if="desktop" />
+	<window fps="30" />
+	<window orientation="landscape" if="mobile"/>
+	
+	<haxedef name="fdb" if="flash"/>
+
+	<!-- cannot be installed with "preferExternal" on my dev phone -->
+	<set name="ANDROID_INSTALL_LOCATION" value="auto" />
+
+	<assets path="assets" rename="assets" include="*" exclude="nme.svg" ></assets>
+
+	<haxelib name="nme"/>
+	::foreach haxelibDependencies::
+	<haxelib name="::name::" version="::version::"/>
+	::end::
+	
+	::foreach sourceDependencies::
+	<classpath  name="::path::"/>
+	::end::
+
+	::foreach projectSourceDirectories::
+	<classpath  name="::__current__::"/>
+	::end::
+
+
+</project>
