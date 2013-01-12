@@ -1,0 +1,15 @@
+{
+ "types": {
+ },
+ "consts": {
+ },
+ "storage": {
+ },
+ "varnames": {
+ "texture": "fs0"
+ },
+ "info": "",
+ "agalasm": "mov ft0, v0\ntex ft1, ft0, fs0 <2d,clamp,linear>\nmov oc, ft1"
+}
+
+

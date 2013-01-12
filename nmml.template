@@ -10,10 +10,20 @@
 	
 	<haxedef name="fdb" if="flash"/>
 
+
+	<!-- TODO add this only if you use glsl2agal directive -->
+        <haxeflag name="-swf-lib" value="glsl2agal.swf" if="flash" />
+        <haxedef name="glsl2agal" />
+
+        <haxeflag name="-swf-lib" value="agalminiassembler.swf" if="flash" />
+
+
 	<!-- cannot be installed with "preferExternal" on my dev phone -->
 	<set name="ANDROID_INSTALL_LOCATION" value="auto" />
 
 	<assets path="assets" rename="assets" include="*" exclude="nme.svg" ></assets>
+
+		
 
 	<haxelib name="nme"/>
 	::foreach haxelibDependencies::

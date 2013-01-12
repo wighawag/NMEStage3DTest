@@ -1,0 +1,20 @@
+{
+ "types": {
+  "v0": "vec2",
+  "fs0": "sampler2D",
+  "oc0": "vec4"
+ },
+ "consts": {},
+ "storage": {
+  "v0": "ir_var_in",
+  "fs0": "ir_var_uniform",
+  "oc0": "ir_var_out"
+ },
+ "varnames": {
+  "texture": "fs0",
+  "gl_FragColor": "oc0",
+  "vTexCoord": "v0"
+ },
+ "info": "",
+ "agalasm": "tex oc, v0.xyyy, fs0 <linear mipdisable repeat 2d>\n"
+}

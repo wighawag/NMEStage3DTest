@@ -1,0 +1,17 @@
+{
+ "types": {
+ },
+ "consts": {
+ },
+ "storage": {
+ },
+ "varnames": {
+ "proj": "vc0",
+ "position": "va0",
+ "uv": "va1"
+ },
+ "info": "",
+ "agalasm": "m44 op, va0, vc0\nmov v0, va1"
+}
+
+

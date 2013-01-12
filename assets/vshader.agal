@@ -1,0 +1,35 @@
+{
+ "types": {
+  "va0": "vec3",
+  "vc1": "mat4",
+  "va1": "vec2",
+  "op0": "vec4",
+  "v0": "vec2"
+ },
+ "consts": {
+  "vc0": [
+   1,
+   0,
+   0,
+   0
+  ]
+ },
+ "storage": {
+  "va0": "ir_var_in",
+  "vc1": "ir_var_uniform",
+  "va1": "ir_var_in",
+  "op0": "ir_var_out",
+  "v0": "ir_var_out"
+ },
+ "varnames": {
+  "proj": "vc1",
+  "unnamed_0": "vc0",
+  "position": "va0",
+  "uv": "va1",
+  "vTexCoord": "v0",
+  "gl_Position": "op0",
+  "unnamed_1": "vt0"
+ },
+ "info": "",
+ "agalasm": "mov vt0.w, vc0.x\nmov vt0.xyz, va0.xyz\nm44 op, vt0, vc1\nmov v0, vc0\nmov v0.xy, va1.xyyy\n"
+}

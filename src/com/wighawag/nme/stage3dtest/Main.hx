@@ -1,14 +1,17 @@
 package com.wighawag.nme.stage3dtest;
 
+import flash.display3D.Context3DTriangleFace;
+import flash.display3D.Context3DCompareMode;
 import flash.display3D.Program3D;
 import flash.utils.Endian;
 import flash.utils.ByteArray;
 import nme.Assets;
 
 import hxsl.samples.utils.Camera;
-import nme.display3D.Context3DUtils;
 import nme.display3D.Context3DProgramType;
-
+import nme.display3D.shaders.glsl.GLSLProgram;
+import nme.display3D.shaders.glsl.GLSLVertexShader;
+import nme.display3D.shaders.glsl.GLSLFragmentShader;
 
 import nme.ui.Keyboard;
 
@@ -23,7 +26,7 @@ class Main{
     var keys : Array<Bool>;
     var texture : flash.display3D.textures.Texture;
 
-    var program3D : Program3D;
+    var glslProgram : GLSLProgram;
 
     var camera : Camera;
     var t : Float;
@@ -49,52 +52,30 @@ class Main{
         context3D.configureBackBuffer( stage.stageWidth, stage.stageHeight, 0, true );
 
 
+
+
         camera = new Camera();
+
+        context3D.enableErrorChecking = true;
 
         #if flash
         nme.Lib.current.addEventListener(nme.events.Event.ENTER_FRAME, update);
-        context3D.enableErrorChecking = true;
         #elseif cpp
         context3D.setRenderMethod(update);
         #end
 
+        context3D.setCulling(Context3DTriangleFace.NONE);
 
-        #if flash
-        var vertexShaderSource =
-        [
-        "m44 op, va0, vc0",
-		"mov v0, va1"
-		 ].join("\n");
-        var fragmentShaderSource =
-        [
-        "mov ft0, v0",
-		"tex ft1, ft0, fs0 <2d,clamp,linear>",
-		"mov oc, ft1"
-        ].join("\n");
-        #elseif cpp
-        var vertexShaderSource =
-            "attribute vec3 va0;" +
-            "attribute vec2 va1;" +
-            "uniform mat4 vc0;" +
-            "varying vec2 vTexCoord;" +
-            "void main() {" +
-            " gl_Position = vc0 * vec4(va0, 1.0);" +
-            " vTexCoord = va1;" +
-            "}";
-        var fragmentShaderSource =
-            "varying vec2 vTexCoord;" +
-            "uniform sampler2D fs0;" +
-            "void main() {" +
-            "vec4 texColor = texture2D(fs0, vTexCoord);" +
-            "gl_FragColor = texColor;"+
-            "}";
-        #end
+        var vertexShaderSource = nme.Assets.getText("assets/vshader.glsl");
+        var fragmentShaderSource = nme.Assets.getText("assets/fshader.glsl");
+        var vertexShaderAgalInfo : String = nme.Assets.getText("assets/vshader.agal");
+        var fragmentShaderAgalInfo : String = nme.Assets.getText("assets/fshader.agal");
 
+        var vertexShader = new GLSLVertexShader(vertexShaderSource, vertexShaderAgalInfo);
+        var fragmentShader = new GLSLFragmentShader(fragmentShaderSource, fragmentShaderAgalInfo);
 
-        program3D = context3D.createProgram();
-        var vShader = Context3DUtils.createShader(Context3DProgramType.VERTEX, vertexShaderSource);
-        var fShader = Context3DUtils.createShader(Context3DProgramType.FRAGMENT, fragmentShaderSource);
-        program3D.upload(vShader, fShader);
+        glslProgram = new GLSLProgram(context3D);
+        glslProgram.upload(vertexShader, fragmentShader);
 
         var logo = Assets.getBitmapData("assets/hxlogo.png");
         texture = context3D.createTexture(logo.width, logo.height, nme.display3D.Context3DTextureFormat.BGRA, false);
@@ -108,6 +89,8 @@ class Main{
         t += 0.01;
 
         context3D.clear(0, 0, 0, 1);
+
+        context3D.setDepthTest(true,Context3DCompareMode.LESS);
 
         if( keys[Keyboard.UP] )
             camera.moveAxis(0,-0.1);
@@ -191,13 +174,11 @@ class Main{
         var vertexBuffer = context3D.createVertexBuffer(numVertices, dataPerVertex);
         vertexBuffer.uploadFromByteArray(vertexByteArray, 0, 0, numVertices);
 
-
-        context3D.setProgram(program3D);
-        context3D.setProgramConstantsFromMatrix(nme.display3D.Context3DProgramType.VERTEX, 0, mat, true);
-        context3D.setTextureAt( 0, texture);
-        context3D.setVertexBufferAt(0, vertexBuffer, 0, flash.display3D.Context3DVertexBufferFormat.FLOAT_3);
-        context3D.setVertexBufferAt(1, vertexBuffer, 3, flash.display3D.Context3DVertexBufferFormat.FLOAT_2);
-
+        glslProgram.attach();
+        glslProgram.setVertexUniformFromMatrix("proj",mat, true);
+        glslProgram.setTextureAt("texture", texture);
+        glslProgram.setVertexBufferAt("position",vertexBuffer, 0, nme.display3D.Context3DVertexBufferFormat.FLOAT_3);
+        glslProgram.setVertexBufferAt("uv",vertexBuffer, 3, nme.display3D.Context3DVertexBufferFormat.FLOAT_2);
 
 
         var indexBuffer = context3D.createIndexBuffer(numIndices);
@@ -208,6 +189,7 @@ class Main{
         context3D.drawTriangles(indexBuffer);
 
         context3D.present();
+
     }
 
 }
