@@ -1,5 +1,7 @@
 package com.wighawag.nme.stage3dtest;
 
+using flash.Vector;
+using nme.display3D.Context3DUtils;
 import flash.display3D.Context3DTriangleFace;
 import flash.display3D.Context3DCompareMode;
 import flash.display3D.Program3D;
@@ -25,8 +27,11 @@ class Main{
     var context3D : flash.display3D.Context3D;
     var keys : Array<Bool>;
     var texture : flash.display3D.textures.Texture;
+    var sceneTexture : flash.display3D.textures.Texture;
 
-    var glslProgram : GLSLProgram;
+    var sceneProgram : GLSLProgram;
+
+    var postProcessingProgram : GLSLProgram;
 
     var camera : Camera;
     var t : Float;
@@ -51,18 +56,11 @@ class Main{
 
         context3D.configureBackBuffer( stage.stageWidth, stage.stageHeight, 0, true );
 
-
-
-
         camera = new Camera();
 
         context3D.enableErrorChecking = true;
 
-        #if flash
-        nme.Lib.current.addEventListener(nme.events.Event.ENTER_FRAME, update);
-        #elseif cpp
-        context3D.setRenderMethod(update);
-        #end
+        context3D.setRenderCallback(update);
 
         context3D.setCulling(Context3DTriangleFace.NONE);
 
@@ -71,24 +69,31 @@ class Main{
         var vertexShaderAgalInfo : String = nme.Assets.getText("assets/vshader.agal");
         var fragmentShaderAgalInfo : String = nme.Assets.getText("assets/fshader.agal");
 
-        var vertexShader = new GLSLVertexShader(vertexShaderSource, vertexShaderAgalInfo);
-        var fragmentShader = new GLSLFragmentShader(fragmentShaderSource, fragmentShaderAgalInfo);
+        var vertexShader = new GLSLVertexShader(vertexShaderSource);//, vertexShaderAgalInfo);
+        var fragmentShader = new GLSLFragmentShader(fragmentShaderSource);//, fragmentShaderAgalInfo);
 
-        glslProgram = new GLSLProgram(context3D);
-        glslProgram.upload(vertexShader, fragmentShader);
+        sceneProgram = new GLSLProgram(context3D);
+        sceneProgram.upload(vertexShader, fragmentShader);
+
+
+        postProcessingProgram = new GLSLProgram(context3D);
+        postProcessingProgram.upload(
+            new GLSLVertexShader(nme.Assets.getText("assets/ppros_vshader.glsl")),//,nme.Assets.getText("assets/ppros_vshader.agal")),
+            new GLSLFragmentShader(nme.Assets.getText("assets/ppros_fshader.glsl"))//,nme.Assets.getText("assets/ppros_fshader.agal"))
+        );
+
 
         var logo = Assets.getBitmapData("assets/hxlogo.png");
         texture = context3D.createTexture(logo.width, logo.height, nme.display3D.Context3DTextureFormat.BGRA, false);
         texture.uploadFromBitmapData(logo);
 
+
+        sceneTexture = context3D.createTexture(nextPowerOfTwo(stage.stageWidth), nextPowerOfTwo(stage.stageHeight), nme.display3D.Context3DTextureFormat.BGRA, false);
     }
 
-    function update(value : Dynamic) {
-
+    function update() {
 
         t += 0.01;
-
-        context3D.clear(0, 0, 0, 1);
 
         context3D.setDepthTest(true,Context3DCompareMode.LESS);
 
@@ -174,22 +179,69 @@ class Main{
         var vertexBuffer = context3D.createVertexBuffer(numVertices, dataPerVertex);
         vertexBuffer.uploadFromByteArray(vertexByteArray, 0, 0, numVertices);
 
-        glslProgram.attach();
-        glslProgram.setVertexUniformFromMatrix("proj",mat, true);
-        glslProgram.setTextureAt("texture", texture);
-        glslProgram.setVertexBufferAt("position",vertexBuffer, 0, nme.display3D.Context3DVertexBufferFormat.FLOAT_3);
-        glslProgram.setVertexBufferAt("uv",vertexBuffer, 3, nme.display3D.Context3DVertexBufferFormat.FLOAT_2);
+        sceneProgram.attach();
+        sceneProgram.setVertexUniformFromMatrix("proj",mat, true);
+        sceneProgram.setTextureAt("texture", texture);
+        sceneProgram.setVertexBufferAt("position",vertexBuffer, 0, nme.display3D.Context3DVertexBufferFormat.FLOAT_3);
+        sceneProgram.setVertexBufferAt("uv",vertexBuffer, 3, nme.display3D.Context3DVertexBufferFormat.FLOAT_2);
 
 
         var indexBuffer = context3D.createIndexBuffer(numIndices);
         indexBuffer.uploadFromByteArray(indexByteArray,0,0, numIndices);
 
 
-        //context3D.drawTriangles(indexBuffer, 0, Std.int(numVertices /2));
+
+//        context3D.setRenderToTexture(sceneTexture, true);
+
+        context3D.clear(0, 0, 0, 1);
         context3D.drawTriangles(indexBuffer);
+
+
+//        ////////////////////// POST PROCESSING //////////////////////////
+//        context3D.setRenderToBackBuffer();
+//
+//        var wholeScreenVertices = context3D.createVertexBuffer(4,2);
+//        wholeScreenVertices.uploadFromVector(Vector.ofArray([-1.0,1, 1,1, 1,-1, -1,-1 ]),0, 4);
+//        postProcessingProgram.attach();
+//        postProcessingProgram.setTextureAt("texture", sceneTexture);
+//        postProcessingProgram.setVertexBufferAt("position", wholeScreenVertices, 0, nme.display3D.Context3DVertexBufferFormat.FLOAT_2);
+//
+//        //TODO as part of nme automaticlly:
+//        context3D.setVertexBufferAt(1,null);
+//
+//
+//        var wholeScreenIndexBuffer = context3D.createIndexBuffer(6);
+//        var screenIndexByteArray = new ByteArray();
+//        screenIndexByteArray.endian = Endian.LITTLE_ENDIAN;
+//
+//        screenIndexByteArray.writeShort(0);
+//        screenIndexByteArray.writeShort(2);
+//        screenIndexByteArray.writeShort(3);
+//
+//        screenIndexByteArray.writeShort(0);
+//        screenIndexByteArray.writeShort(1);
+//        screenIndexByteArray.writeShort(2);
+//        wholeScreenIndexBuffer.uploadFromByteArray(screenIndexByteArray, 0, 0, 6);
+//
+//        context3D.clear(0, 0, 0, 1);
+//        context3D.drawTriangles(wholeScreenIndexBuffer);
+//        //////////////////////////////////////////////////////////////////
+
 
         context3D.present();
 
+    }
+
+    public static function nextPowerOfTwo(v:Int): Int
+    {
+        v--;
+        v |= v >> 1;
+        v |= v >> 2;
+        v |= v >> 4;
+        v |= v >> 8;
+        v |= v >> 16;
+        v++;
+        return v;
     }
 
 }

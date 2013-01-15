@@ -1,0 +1,40 @@
+{
+ "types": {
+  "v0": "vec2",
+  "op0": "vec4",
+  "va0": "vec2"
+ },
+ "storage": {
+  "v0": "ir_var_out",
+  "op0": "ir_var_out",
+  "va0": "ir_var_in"
+ },
+ "consts": {
+  "vc1": [
+   0.5,
+   0,
+   0,
+   0
+  ],
+  "vc0": [
+   1,
+   2,
+   0,
+   0
+  ]
+ },
+ "varnames": {
+  "unnamed_0": "vc0",
+  "gl_Position": "op0",
+  "unnamed_1": "vc1",
+  "position": "va0",
+  "vTexCoord": "v0",
+  "unnamed_2": "vt0"
+ },
+ "info": "",
+ "agalasm": "mov op, va0\nadd vt0, vc0.xxxx, va0\ndiv vt0, vt0, vc0.yyyy\nsub vt0.y, vc0.x, vt0.y\nmov v0, vt0"
+}
+
+//add 1,1,1,1
+//div by 2,2,2,2
+//revert y (1-y)
