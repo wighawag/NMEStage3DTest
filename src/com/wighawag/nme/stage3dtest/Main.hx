@@ -190,46 +190,57 @@ class Main{
         indexBuffer.uploadFromByteArray(indexByteArray,0,0, numIndices);
 
 
+        if (shouldRenderToTexture()){
+            context3D.setRenderToTexture(sceneTexture);
+        }
 
-//        context3D.setRenderToTexture(sceneTexture, true);
 
-        context3D.clear(0, 0, 0, 1);
+        context3D.clear(0, 0.2, 0, 1);
         context3D.drawTriangles(indexBuffer);
 
 
-//        ////////////////////// POST PROCESSING //////////////////////////
-//        context3D.setRenderToBackBuffer();
-//
-//        var wholeScreenVertices = context3D.createVertexBuffer(4,2);
-//        wholeScreenVertices.uploadFromVector(Vector.ofArray([-1.0,1, 1,1, 1,-1, -1,-1 ]),0, 4);
-//        postProcessingProgram.attach();
-//        postProcessingProgram.setTextureAt("texture", sceneTexture);
-//        postProcessingProgram.setVertexBufferAt("position", wholeScreenVertices, 0, nme.display3D.Context3DVertexBufferFormat.FLOAT_2);
-//
-//        //TODO as part of nme automaticlly:
-//        context3D.setVertexBufferAt(1,null);
-//
-//
-//        var wholeScreenIndexBuffer = context3D.createIndexBuffer(6);
-//        var screenIndexByteArray = new ByteArray();
-//        screenIndexByteArray.endian = Endian.LITTLE_ENDIAN;
-//
-//        screenIndexByteArray.writeShort(0);
-//        screenIndexByteArray.writeShort(2);
-//        screenIndexByteArray.writeShort(3);
-//
-//        screenIndexByteArray.writeShort(0);
-//        screenIndexByteArray.writeShort(1);
-//        screenIndexByteArray.writeShort(2);
-//        wholeScreenIndexBuffer.uploadFromByteArray(screenIndexByteArray, 0, 0, 6);
-//
-//        context3D.clear(0, 0, 0, 1);
-//        context3D.drawTriangles(wholeScreenIndexBuffer);
-//        //////////////////////////////////////////////////////////////////
+        if(shouldRenderToTexture()){
+            ////////////////////// POST PROCESSING //////////////////////////
+            context3D.setRenderToBackBuffer();
 
+            var wholeScreenVertices = context3D.createVertexBuffer(4,2);
+            wholeScreenVertices.uploadFromVector(Vector.ofArray([-1.0,1, 1,1, 1,-1, -1,-1 ]),0, 4);
+            postProcessingProgram.attach();
+            postProcessingProgram.setTextureAt("texture", sceneTexture);
+            postProcessingProgram.setVertexBufferAt("position", wholeScreenVertices, 0, nme.display3D.Context3DVertexBufferFormat.FLOAT_2);
+
+            //TODO as part of nme automatically:
+            #if flash
+            context3D.setVertexBufferAt(1,null);
+            #end
+
+
+            var wholeScreenIndexBuffer = context3D.createIndexBuffer(6);
+            var screenIndexByteArray = new ByteArray();
+            screenIndexByteArray.endian = Endian.LITTLE_ENDIAN;
+
+            screenIndexByteArray.writeShort(0);
+            screenIndexByteArray.writeShort(2);
+            screenIndexByteArray.writeShort(3);
+
+            screenIndexByteArray.writeShort(0);
+            screenIndexByteArray.writeShort(1);
+            screenIndexByteArray.writeShort(2);
+            wholeScreenIndexBuffer.uploadFromByteArray(screenIndexByteArray, 0, 0, 6);
+
+            context3D.clear(0.5, 0, 0, 1);
+            context3D.drawTriangles(wholeScreenIndexBuffer);
+            //////////////////////////////////////////////////////////////////
+        }
 
         context3D.present();
 
+    }
+
+
+
+    private function shouldRenderToTexture() : Bool{
+        return keys[Keyboard.SPACE];
     }
 
     public static function nextPowerOfTwo(v:Int): Int
