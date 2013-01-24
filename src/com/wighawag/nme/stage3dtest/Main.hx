@@ -1,5 +1,6 @@
 package com.wighawag.nme.stage3dtest;
 
+import flash.events.ErrorEvent;
 using flash.Vector;
 using nme.display3D.Context3DUtils;
 import flash.display3D.Context3DTriangleFace;
@@ -18,6 +19,7 @@ import nme.display3D.shaders.glsl.GLSLFragmentShader;
 import nme.ui.Keyboard;
 
 class Main{
+
 	public static function main() : Void{
         var inst = new Main();
 	}
@@ -36,15 +38,20 @@ class Main{
     var camera : Camera;
     var t : Float;
 
-    function new() {
+    public function new() {
         t = 0;
         keys = [];
         stage = flash.Lib.current.stage;
         stage3D = stage.stage3Ds[0];
         stage3D.addEventListener( nme.events.Event.CONTEXT3D_CREATE, onReady );
+        stage3D.addEventListener( nme.events.ErrorEvent.ERROR, onError );
         stage.addEventListener( nme.events.KeyboardEvent.KEY_DOWN, callback(onKey,true) );
         stage.addEventListener( nme.events.KeyboardEvent.KEY_UP, callback(onKey,false) );
         stage3D.requestContext3D();
+    }
+
+    function onError(event : ErrorEvent) : Void{
+        trace(event);
     }
 
     function onKey( down, e : nme.events.KeyboardEvent ) {
@@ -54,20 +61,35 @@ class Main{
     function onReady( _ ) {
         context3D = stage3D.context3D;
 
-        context3D.configureBackBuffer( stage.stageWidth, stage.stageHeight, 0, true );
+        context3D.configureBackBuffer( stage.stageWidth, stage.stageHeight, 0, false );
 
         camera = new Camera();
 
         context3D.enableErrorChecking = true;
 
-        context3D.setRenderCallback(update);
 
-        context3D.setCulling(Context3DTriangleFace.NONE);
 
-        var vertexShaderSource = nme.Assets.getText("assets/vshader.glsl");
-        var fragmentShaderSource = nme.Assets.getText("assets/fshader.glsl");
-        var vertexShaderAgalInfo : String = nme.Assets.getText("assets/vshader.agal");
-        var fragmentShaderAgalInfo : String = nme.Assets.getText("assets/fshader.agal");
+        //context3D.setCulling(Context3DTriangleFace.NONE);
+
+        //var vertexShaderSource = nme.Assets.getText("assets/vshader.glsl");
+        var vertexShaderSource = "attribute vec3 position;\n"+
+        "attribute vec2 uv;\n"+
+        "uniform mat4 proj;\n"+
+        "varying vec2 vTexCoord;\n"+
+        "void main() {\n"+
+            "gl_Position = proj * vec4(position, 1.0);\n"+
+            "vTexCoord = uv;\n"+
+        "}";
+        //var fragmentShaderSource = nme.Assets.getText("assets/fshader.glsl");
+        var fragmentShaderSource = #if js "precision mediump float;\n"+ #end
+        "varying vec2 vTexCoord;\n"+
+        "uniform sampler2D texture;\n"+
+        "void main() {\n"+
+            "vec4 texColor = texture2D(texture, vTexCoord);\n"+
+            "gl_FragColor = texColor;\n"+
+        "}";
+        //var vertexShaderAgalInfo : String = nme.Assets.getText("assets/vshader.agal");
+        //var fragmentShaderAgalInfo : String = nme.Assets.getText("assets/fshader.agal");
 
         var vertexShader = new GLSLVertexShader(vertexShaderSource);//, vertexShaderAgalInfo);
         var fragmentShader = new GLSLFragmentShader(fragmentShaderSource);//, fragmentShaderAgalInfo);
@@ -76,26 +98,52 @@ class Main{
         sceneProgram.upload(vertexShader, fragmentShader);
 
 
+        //nme.Assets.getText("assets/ppros_vshader.glsl")
+        //nme.Assets.getText("assets/ppros_fshader.glsl")
+        var pprosVShaderSource = "const vec2 madd=vec2(0.5,0.5);\n"+
+        "attribute vec4 position;\n"+
+        "varying vec2 vTexCoord;\n"+
+        "void main() {\n"+
+            "gl_Position = position;\n"+
+            "vec2 t = vec2(position.xy  * madd + madd);\n"+
+//"t.y = 1 -t.y; reverse does not work in glsl\n"+
+            "vTexCoord = t;\n"+
+        "}";
+        var pprosFShaderSource = #if js "precision mediump float;\n"+ #end
+        "varying vec2 vTexCoord;\n"+
+        "uniform sampler2D texture;\n"+
+        "void main() {\n"+
+            "vec4 texColor = texture2D(texture, vTexCoord);\n"+
+            "texColor.y = 0.0;\n"+
+            "texColor.z = 0.0;\n"+
+            "gl_FragColor = texColor;\n"+
+        "}";
         postProcessingProgram = new GLSLProgram(context3D);
         postProcessingProgram.upload(
-            new GLSLVertexShader(nme.Assets.getText("assets/ppros_vshader.glsl")),//,nme.Assets.getText("assets/ppros_vshader.agal")),
-            new GLSLFragmentShader(nme.Assets.getText("assets/ppros_fshader.glsl"))//,nme.Assets.getText("assets/ppros_fshader.agal"))
+            new GLSLVertexShader(pprosVShaderSource),//,nme.Assets.getText("assets/ppros_vshader.agal")),
+            new GLSLFragmentShader(pprosFShaderSource)//,nme.Assets.getText("assets/ppros_fshader.agal"))
         );
+
 
 
         var logo = Assets.getBitmapData("assets/hxlogo.png");
         texture = context3D.createTexture(logo.width, logo.height, nme.display3D.Context3DTextureFormat.BGRA, false);
-        texture.uploadFromBitmapData(logo);
 
+        //TODO fix cross domain issues:
+        #if !js
+        texture.uploadFromBitmapData(logo);
+        #end
 
         sceneTexture = context3D.createTexture(nextPowerOfTwo(stage.stageWidth), nextPowerOfTwo(stage.stageHeight), nme.display3D.Context3DTextureFormat.BGRA, false);
+
+        context3D.setRenderCallback(update);
     }
 
     function update() {
 
         t += 0.01;
 
-        context3D.setDepthTest(true,Context3DCompareMode.LESS);
+        //context3D.setDepthTest(true,Context3DCompareMode.LESS);
 
         if( keys[Keyboard.UP] )
             camera.moveAxis(0,-0.1);
