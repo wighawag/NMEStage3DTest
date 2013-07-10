@@ -1,22 +1,23 @@
-package com.wighawag.nme.stage3dtest;
+package wighawag.stage3dtest;
 
 import flash.events.ErrorEvent;
 using flash.Vector;
-using nme.display3D.Context3DUtils;
+using flash.display3D.Context3DUtils;
 import flash.display3D.Context3DTriangleFace;
 import flash.display3D.Context3DCompareMode;
 import flash.display3D.Program3D;
 import flash.utils.Endian;
 import flash.utils.ByteArray;
-import nme.Assets;
+import flash.display.BitmapData;
+import openfl.Assets;
 
 import hxsl.samples.utils.Camera;
-import nme.display3D.Context3DProgramType;
-import nme.display3D.shaders.glsl.GLSLProgram;
-import nme.display3D.shaders.glsl.GLSLVertexShader;
-import nme.display3D.shaders.glsl.GLSLFragmentShader;
+import flash.display3D.Context3DProgramType;
+import flash.display3D.shaders.glsl.GLSLProgram;
+import flash.display3D.shaders.glsl.GLSLVertexShader;
+import flash.display3D.shaders.glsl.GLSLFragmentShader;
 
-import nme.ui.Keyboard;
+import flash.ui.Keyboard;
 
 class Main{
 
@@ -24,8 +25,8 @@ class Main{
         var inst = new Main();
 	}
 
-    var stage : nme.display.Stage;
-    var stage3D : nme.display.Stage3D;
+    var stage : flash.display.Stage;
+    var stage3D : flash.display.Stage3D;
     var context3D : flash.display3D.Context3D;
     var keys : Array<Bool>;
     var texture : flash.display3D.textures.Texture;
@@ -43,10 +44,10 @@ class Main{
         keys = [];
         stage = flash.Lib.current.stage;
         stage3D = stage.stage3Ds[0];
-        stage3D.addEventListener( nme.events.Event.CONTEXT3D_CREATE, onReady );
-        stage3D.addEventListener( nme.events.ErrorEvent.ERROR, onError );
-        stage.addEventListener( nme.events.KeyboardEvent.KEY_DOWN, callback(onKey,true) );
-        stage.addEventListener( nme.events.KeyboardEvent.KEY_UP, callback(onKey,false) );
+        stage3D.addEventListener( flash.events.Event.CONTEXT3D_CREATE, onReady );
+        stage3D.addEventListener( flash.events.ErrorEvent.ERROR, onError );
+        stage.addEventListener( flash.events.KeyboardEvent.KEY_DOWN, onKey.bind(true) );
+        stage.addEventListener( flash.events.KeyboardEvent.KEY_UP, onKey.bind(false) );
         stage3D.requestContext3D();
     }
 
@@ -54,7 +55,7 @@ class Main{
         trace(event);
     }
 
-    function onKey( down, e : nme.events.KeyboardEvent ) {
+    function onKey( down, e : flash.events.KeyboardEvent ) {
         keys[e.keyCode] = down;
     }
 
@@ -71,7 +72,7 @@ class Main{
 
         //context3D.setCulling(Context3DTriangleFace.NONE);
 
-        //var vertexShaderSource = nme.Assets.getText("assets/vshader.glsl");
+        //var vertexShaderSource = flash.Assets.getText("assets/vshader.glsl");
         var vertexShaderSource = "attribute vec3 position;\n"+
         "attribute vec2 uv;\n"+
         "uniform mat4 proj;\n"+
@@ -80,7 +81,7 @@ class Main{
             "gl_Position = proj * vec4(position, 1.0);\n"+
             "vTexCoord = uv;\n"+
         "}";
-        //var fragmentShaderSource = nme.Assets.getText("assets/fshader.glsl");
+        //var fragmentShaderSource = flash.Assets.getText("assets/fshader.glsl");
         var fragmentShaderSource = #if js "precision mediump float;\n"+ #end
         "varying vec2 vTexCoord;\n"+
         "uniform sampler2D texture;\n"+
@@ -88,8 +89,8 @@ class Main{
             "vec4 texColor = texture2D(texture, vTexCoord);\n"+
             "gl_FragColor = texColor;\n"+
         "}";
-        //var vertexShaderAgalInfo : String = nme.Assets.getText("assets/vshader.agal");
-        //var fragmentShaderAgalInfo : String = nme.Assets.getText("assets/fshader.agal");
+        //var vertexShaderAgalInfo : String = flash.Assets.getText("assets/vshader.agal");
+        //var fragmentShaderAgalInfo : String = flash.Assets.getText("assets/fshader.agal");
 
         var vertexShader = new GLSLVertexShader(vertexShaderSource);//, vertexShaderAgalInfo);
         var fragmentShader = new GLSLFragmentShader(fragmentShaderSource);//, fragmentShaderAgalInfo);
@@ -98,8 +99,8 @@ class Main{
         sceneProgram.upload(vertexShader, fragmentShader);
 
 
-        //nme.Assets.getText("assets/ppros_vshader.glsl")
-        //nme.Assets.getText("assets/ppros_fshader.glsl")
+        //flash.Assets.getText("assets/ppros_vshader.glsl")
+        //flash.Assets.getText("assets/ppros_fshader.glsl")
         var pprosVShaderSource = "const vec2 madd=vec2(0.5,0.5);\n"+
         "attribute vec4 position;\n"+
         "varying vec2 vTexCoord;\n"+
@@ -120,26 +121,30 @@ class Main{
         "}";
         postProcessingProgram = new GLSLProgram(context3D);
         postProcessingProgram.upload(
-            new GLSLVertexShader(pprosVShaderSource),//,nme.Assets.getText("assets/ppros_vshader.agal")),
-            new GLSLFragmentShader(pprosFShaderSource)//,nme.Assets.getText("assets/ppros_fshader.agal"))
+            new GLSLVertexShader(pprosVShaderSource),//,flash.Assets.getText("assets/ppros_vshader.agal")),
+            new GLSLFragmentShader(pprosFShaderSource)//,flash.Assets.getText("assets/ppros_fshader.agal"))
         );
 
-
-
         var logo = Assets.getBitmapData("assets/hxlogo.png");
-        texture = context3D.createTexture(logo.width, logo.height, nme.display3D.Context3DTextureFormat.BGRA, false);
 
-        //TODO fix cross domain issues:
-        #if !js
+        //var bitmap = new flash.display.Bitmap(logo);
+        //flash.Lib.current.stage.addChild(bitmap);
+        //var sprite = new flash.display.Sprite();
+        //sprite.graphics.beginFill(0xff0000);
+        //sprite.graphics.drawRect(0,0,100,100);
+        //sprite.graphics.endFill();
+        //flash.Lib.current.stage.addChild(sprite);
+
+        texture = context3D.createTexture(logo.width, logo.height, flash.display3D.Context3DTextureFormat.BGRA, false);
+
         texture.uploadFromBitmapData(logo);
-        #end
 
-        sceneTexture = context3D.createTexture(nextPowerOfTwo(stage.stageWidth), nextPowerOfTwo(stage.stageHeight), nme.display3D.Context3DTextureFormat.BGRA, false);
+        sceneTexture = context3D.createTexture(nextPowerOfTwo(stage.stageWidth), nextPowerOfTwo(stage.stageHeight), flash.display3D.Context3DTextureFormat.BGRA, false);
 
         context3D.setRenderCallback(update);
     }
 
-    function update() {
+    function update(event : flash.events.Event) {
 
         t += 0.01;
 
@@ -161,8 +166,8 @@ class Main{
 
         var project = camera.m.toMatrix();
 
-        var mpos = new nme.geom.Matrix3D();
-        mpos.appendRotation(t * 10, nme.geom.Vector3D.Z_AXIS);
+        var mpos = new flash.geom.Matrix3D();
+        mpos.appendRotation(t * 10, flash.geom.Vector3D.Z_AXIS);
 
 
         project.prepend(mpos);
@@ -229,9 +234,10 @@ class Main{
 
         sceneProgram.attach();
         sceneProgram.setVertexUniformFromMatrix("proj",mat, true);
+        context3D.setGLSLSamplerStateAt("texture",flash.display3D.Context3DWrapMode.CLAMP, flash.display3D.Context3DTextureFilter.LINEAR, flash.display3D.Context3DMipFilter.MIPNONE);
         sceneProgram.setTextureAt("texture", texture);
-        sceneProgram.setVertexBufferAt("position",vertexBuffer, 0, nme.display3D.Context3DVertexBufferFormat.FLOAT_3);
-        sceneProgram.setVertexBufferAt("uv",vertexBuffer, 3, nme.display3D.Context3DVertexBufferFormat.FLOAT_2);
+        sceneProgram.setVertexBufferAt("position",vertexBuffer, 0, flash.display3D.Context3DVertexBufferFormat.FLOAT_3);
+        sceneProgram.setVertexBufferAt("uv",vertexBuffer, 3, flash.display3D.Context3DVertexBufferFormat.FLOAT_2);
 
 
         var indexBuffer = context3D.createIndexBuffer(numIndices);
@@ -255,9 +261,9 @@ class Main{
             wholeScreenVertices.uploadFromVector(Vector.ofArray([-1.0,1, 1,1, 1,-1, -1,-1 ]),0, 4);
             postProcessingProgram.attach();
             postProcessingProgram.setTextureAt("texture", sceneTexture);
-            postProcessingProgram.setVertexBufferAt("position", wholeScreenVertices, 0, nme.display3D.Context3DVertexBufferFormat.FLOAT_2);
+            postProcessingProgram.setVertexBufferAt("position", wholeScreenVertices, 0, flash.display3D.Context3DVertexBufferFormat.FLOAT_2);
 
-            //TODO as part of nme automatically:
+            //TODO as part of flash.automatically:
             #if flash
             context3D.setVertexBufferAt(1,null);
             #end

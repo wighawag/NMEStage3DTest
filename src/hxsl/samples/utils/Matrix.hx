@@ -1,6 +1,6 @@
 package hxsl.samples.utils;
 
-using nme.Vector;
+using flash.Vector;
 
 class Matrix {
 

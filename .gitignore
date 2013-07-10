@@ -16,3 +16,4 @@ out/
 package/assets/
 package/*.swf
 package.zip
+*.xml.hxml

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	
+	<meta title="stage3dtest" package="com.wighawag.stage3dtest" version="0.1.0-SNAPSHOT" company="Unknown" />
+	<app path="target/openfl" file="Application" main="wighawag.stage3dtest.Main"  swf-version="11.2"/>
+
+	<window width="800" height="600" if="desktop" />
+	<window fps="30" />
+	<window orientation="landscape" allow-shaders="true" require-shaders="true"  if="mobile"/>
+	
+	<haxedef name="fdb" if="flash"/>
+
+	<!-- TODO add this only if you use glsl2agal directive -->
+    <haxeflag name="-swf-lib" value="glsl2agal.swf" if="flash" />
+    <haxedef name="glsl2agal" if="flash" />
+
+    <haxeflag name="-swf-lib" value="agalminiassembler.swf" if="flash" />
+
+
+    <!-- HXCPP DEBUGGING -->
+    <haxedef name="HXCPP_DEBUG_LINK" />
+    <haxedef name="DHXCPP_STACK_TRACE" />
+    <haxedef name="HXCPP_STACK_LINE" />
+    <haxedef name="HXCPP_CHECK_POINTER" />
+    <haxedef name="HXCPP_DEBUGGER " />
+
+	<!-- cannot be installed with "preferExternal" on my dev phone -->
+	<set name="ANDROID_INSTALL_LOCATION" value="auto" />
+
+    <assets path="assets" rename="assets" include="*" exclude="nme.svg" />
+
+    <haxelib name="openfl" version="1.0.4" />
+    <haxelib name="stage3d-glsl-wrapper" version="0.0.1" />	
+    <!--   <haxelib name="openfl-native-stage3d" version="0.0.1" />-->
+	<source  name="src"/>
+
+    <!--<haxelib name="openfl-native-stage3d" version="0.0.1"/>-->
+    <classpath path="/usr/lib/haxe/lib/openfl-native-stage3d/0,0,1/" /> <!-- need to be there to override openfl Stage -->
+</project>
