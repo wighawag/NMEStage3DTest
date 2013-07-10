@@ -2,7 +2,7 @@ package wighawag.stage3dtest;
 
 import flash.events.ErrorEvent;
 using flash.Vector;
-using flash.display3D.Context3DUtils;
+using OpenFLStage3D;
 import flash.display3D.Context3DTriangleFace;
 import flash.display3D.Context3DCompareMode;
 import flash.display3D.Program3D;
@@ -43,7 +43,7 @@ class Main{
         t = 0;
         keys = [];
         stage = flash.Lib.current.stage;
-        stage3D = stage.stage3Ds[0];
+        stage3D = stage.getStage3D(0);
         stage3D.addEventListener( flash.events.Event.CONTEXT3D_CREATE, onReady );
         stage3D.addEventListener( flash.events.ErrorEvent.ERROR, onError );
         stage.addEventListener( flash.events.KeyboardEvent.KEY_DOWN, onKey.bind(true) );
